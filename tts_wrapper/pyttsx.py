@@ -16,6 +16,10 @@ class PyTTSX3(TTS):
 
         self.engine.setProperty('rate', rate)  # setting up new voice rate
 
+    def _wrap_ssml(self, ssml) -> str:
+        # Don't force-wrap SSML.
+        return ssml
+
     def _synth(self, ssml: str, filename=None) -> None:
         """SSML will actually be stripped"""
         if filename is not None:
