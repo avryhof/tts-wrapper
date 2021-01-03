@@ -1,4 +1,4 @@
-import pyttsx as pyttsx
+import pyttsx3 as pyttsx
 from tts_wrapper.tts import TTS
 
 

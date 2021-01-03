@@ -24,10 +24,10 @@ class TTS(object):
     def _wrap_ssml(self, ssml) -> str:
         return f'<speak>{ssml}</speak>'
 
-    def _synth(self, ssml: str, filename: str) -> None:
+    def _synth(self, ssml: str, filename=None) -> None:
         raise NotImplementedError()
 
-    def synth(self, ssml: str, filename: str) -> None:
+    def synth(self, ssml: str, filename=None) -> None:
         '''
         @param ssml: the ssml text to synthesize without the speak tag (will be added automatically).
         @param filename: the output wave file path.
