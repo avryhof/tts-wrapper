@@ -49,6 +49,10 @@ class AbstractTTS(ABC):
     def _synth(self, ssml: str, filename=None) -> None:
         raise NotImplementedError()
 
+    def _wrap_ssml(self, ssml) -> str:
+        # Don't force-wrap SSML.
+        return ssml
+
     def synth(self, ssml: str, filename=None) -> None:
         """
         @param ssml: the ssml text to synthesize without the speak tag (will be added automatically).
