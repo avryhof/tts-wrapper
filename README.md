@@ -1,20 +1,9 @@
-# TTS-Wrapper
+# TTS-Wrapper-local
 
-[![PyPI version](https://badge.fury.io/py/tts-wrapper.svg)](https://badge.fury.io/py/tts-wrapper)
-![build](https://github.com/mediatechlab/tts-wrapper/workflows/build/badge.svg)
-[![codecov](https://codecov.io/gh/mediatechlab/tts-wrapper/branch/master/graph/badge.svg?token=79IG7GAK0B)](https://codecov.io/gh/mediatechlab/tts-wrapper)
-[![Maintainability](https://api.codeclimate.com/v1/badges/b327dda20742c054bcf0/maintainability)](https://codeclimate.com/github/mediatechlab/tts-wrapper/maintainability)
-
-> ## **Contributions are welcome! Check our [contribution guide](./CONTRIBUTING.md).**
-
-_TTS-Wrapper_ makes it easier to use text-to-speech APIs by providing a unified and easy-to-use interface.
+_TTS-Wrapper-local_ makes it easier to use text-to-speech APIs by providing a unified and easy-to-use interface.
 
 Currently the following services are supported:
 
-- AWS Polly
-- Google TTS
-- Microsoft TTS
-- IBM Watson
 - PicoTTS
 - SAPI (Microsoft Speech API)
 
@@ -23,16 +12,10 @@ Currently the following services are supported:
 Install using pip.
 
 ```sh
-pip install TTS-Wrapper
+pip install TTS-Wrapper-local
 ```
 
 **Note: for each service you want to use, you have to install the required packages.**
-
-Example: to use `google` and `watson`:
-
-```sh
-pip install TTS-Wrapper[google, watson]
-```
 
 For PicoTTS you need to install the package on your machine. For Debian (Ubuntu and others) install the package `libttspico-utils` and for Arch (Manjaro and others) there is a package called `aur/pico-tts`.
 
@@ -40,12 +23,6 @@ For PicoTTS you need to install the package on your machine. For Debian (Ubuntu 
 
 Simply instantiate an object from the desired service and call `synth()`.
 
-```Python
-from tts_wrapper import PollyTTS, PollyClient
-
-tts = PollyTTS(client=PollyClient())
-tts.synth('<speak>Hello, world!</speak>', 'hello.wav')
-```
 
 Notice that you must create a client object to work with your service. Each service uses different authorization techniques. Check out [the documentation](#authorization) to learn more.
 
