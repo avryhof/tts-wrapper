@@ -2,12 +2,15 @@ import subprocess
 import tempfile
 from typing import Optional
 
+from ... import BaseClient
 from ...exceptions import ModuleNotInstalled
 from ..utils import process_wav
 
 
-class PicoClient:
-    def __init__(self) -> None:
+class PicoClient(BaseClient):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+
         bin_name = self._get_bin_name()
         if bin_name is None:
             raise ModuleNotInstalled("pico-tts")

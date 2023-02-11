@@ -1,3 +1,7 @@
+import os
+import random
+import string
+import tempfile
 from abc import ABC, abstractmethod
 from typing import Any, List, Literal, Optional, Union
 
@@ -29,7 +33,7 @@ class AbstractTTS(ABC):
         pass
 
     def synth_to_file(
-        self, text: Any, filename: str, format: Optional[FileFormat] = None
+            self, text: Any, filename: str, format: Optional[FileFormat] = None
     ) -> None:
         """Transforms written text to an audio file and saves on disk.
 
@@ -57,3 +61,16 @@ class AbstractTTS(ABC):
             raise SynthError(
                 f'Error while calling synth with "{(ssml[:100] + "...") if len(ssml) > 100 else ssml}"'
             ) from e
+
+
+class BaseClient:
+    temp_dir = tempfile.gettempdir()
+
+    def __init__(self, **kwargs):
+        self.temp_dir = kwargs.get("temp_dir", tempfile.gettempdir())
+
+    def create_temp_filename(self, suffix="") -> str:
+        random_seq = "".join(random.choice(string.ascii_letters) for _ in range(10))
+        return os.path.join(
+            self.temp_dir, f"{tempfile.gettempprefix()}_{random_seq}{suffix}"
+        )

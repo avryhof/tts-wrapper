@@ -1,16 +1,19 @@
 import os
 
+from ... import BaseClient
+
 try:
     import pyttsx3  # type: ignore
 except ImportError:
     pyttsx3 = None
 
 from ...exceptions import ModuleNotInstalled
-from ..utils import create_temp_filename
 
 
-class SAPIClient:
-    def __init__(self) -> None:
+class SAPIClient(BaseClient):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+
         if pyttsx3 is None:
             raise ModuleNotInstalled("pyttsx3")
 
@@ -20,7 +23,7 @@ class SAPIClient:
             raise ModuleNotInstalled("sapi")
 
     def synth(self, text: str) -> bytes:
-        temp_filename = create_temp_filename(".wav")
+        temp_filename = self.create_temp_filename(".wav")
         self._client.save_to_file(text, temp_filename)
         self._client.runAndWait()
 
