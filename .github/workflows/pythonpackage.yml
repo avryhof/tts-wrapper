@@ -1,33 +1,100 @@
-name: Python package
+name: build
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8, 3.9]
-
+        include:
+          - { os: ubuntu-latest, python: "3.8" }
+          - { os: ubuntu-latest, python: "3.9" }
+          - { os: ubuntu-latest, python: "3.10" }
+          - { os: windows-latest, python: "3.10" }
+    defaults:
+      run:
+        shell: bash
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    - name: Lint with flake8
-      run: |
-        pip install flake8
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test with pytest
-      run: |
-        pip install pytest pytest-mock
-        pytest
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements.dev.txt
+      - name: Lint with flake8
+        run: |
+          pip install flake8
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      - name: Check with mypy
+        run: mypy $(git ls-files '*.py')
+      - name: Install PicoTTS on Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y libttspico-utils
+      - name: Full test with pytest
+        if: github.event_name == 'push'
+        env:
+          POLLY_REGION: ${{ secrets.POLLY_REGION }}
+          POLLY_AWS_ID: ${{ secrets.POLLY_AWS_ID }}
+          POLLY_AWS_KEY: ${{ secrets.POLLY_AWS_KEY }}
+          MICROSOFT_KEY: ${{ secrets.MICROSOFT_KEY }}
+          GOOGLE_SA_PATH: ${{ secrets.GOOGLE_SA_PATH }}
+          GOOGLE_SA_FILE_B64: ${{ secrets.GOOGLE_SA_FILE_B64 }}
+          WATSON_API_KEY: ${{ secrets.WATSON_API_KEY }}
+          WATSON_API_URL: ${{ secrets.WATSON_API_URL }}
+        run: |
+          # create intermediary dirs
+          mkdir -p $(dirname $GOOGLE_SA_PATH)
+          # create Google's json file
+          echo $GOOGLE_SA_FILE_B64 | base64 --decode > $GOOGLE_SA_PATH
+          # run all tests with coverage
+          pytest --cov=tts_wrapper
+      - name: Basic tests with pytest
+        if: github.event_name == 'pull_request'
+        run: make tests
+      - name: Upload Coverage to Codecov
+        if: ${{ !env.ACT }} && github.event_name == 'push'
+        uses: codecov/codecov-action@v2
+
+  poetry:
+    # This job makes sure that we can use poetry to install dependencies.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.10"
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v2.0.0
+        with:
+          poetry-version: "1.1.11"
+      - name: Install dependencies
+        run: |
+          poetry install
+      - name: Test with pytest
+        run: poetry run make tests
+
+  pip-install:
+    # This job makes sure that we can use pip to install the lib from PyPI.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.10"
+      - name: Install the lib
+        run: |
+          pip install tts_wrapper[google,watson,microsoft,polly,sapi]
+      - name: Test the lib
+        run: python -c 'import tts_wrapper'
